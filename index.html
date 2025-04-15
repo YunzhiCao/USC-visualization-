@@ -25,6 +25,46 @@
     zoom: 16 
   });
 
+// 加载 geojson 图层
+map.on('load', () => {
+  map.addSource('usc-buildings', {
+    type: 'geojson',
+    data: 'map.geojson' // 你刚上传的文件名
+  });
+
+  map.addLayer({
+    id: 'usc-buildings-layer',
+    type: 'fill',
+    source: 'usc-buildings',
+    paint: {
+      'fill-color': '#888888',
+      'fill-opacity': 0.5
+    }
+  });
+
+  // 可选：鼠标悬停显示信息（来自 properties）
+  map.on('click', 'usc-buildings-layer', (e) => {
+    const props = e.features[0].properties;
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`
+        <strong>${props.name}</strong><br>
+        <em>Year Built:</em> ${props.yearBuilt}<br>
+        <em>Style:</em> ${props.style}<br>
+        <em>Designer:</em> ${props.designer}<br>
+        ${props.info || props.description || ''}
+      `)
+      .addTo(map);
+  });
+
+  // 鼠标样式变手指
+  map.on('mouseenter', 'usc-buildings-layer', () => {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+  map.on('mouseleave', 'usc-buildings-layer', () => {
+    map.getCanvas().style.cursor = '';
+  });
+});
 
 
 
