@@ -1,11 +1,37 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Welcome to My GitHub Page</title>
-  </head>
-  <body>
-    <h1>USC Map visualization</h1>
-    <p> A USC map website that introduce you the basic information of all USC buildings.</p>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <title>Mapbox Demo</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+  mapboxgl.accessToken = pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg; // ← 替换为你的 Token
+
+  const map = new mapboxgl.Map({
+    container: 'map', // HTML 容器 ID
+    style: 'mapbox://styles/mapbox/streets-v12', // 样式 URL
+    center: [-118.2437, 34.0522], // [经度, 纬度] - 洛杉矶
+    zoom: 10
+  });
+
+  // 示例：添加一个 marker 点
+  new mapboxgl.Marker()
+    .setLngLat([-118.2437, 34.0522])
+    .setPopup(new mapboxgl.Popup().setText("Los Angeles")) // 可选：弹出提示
+    .addTo(map);
+</script>
+
+</body>
 </html>
+
