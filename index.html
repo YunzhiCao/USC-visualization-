@@ -21,15 +21,139 @@
   const map = new mapboxgl.Map({
     container: 'map', // HTML 容器 ID
     style: 'mapbox://styles/mapbox/streets-v12', // 样式 URL
-    center: [-118.2437, 34.0522], // [经度, 纬度] - 洛杉矶
-    zoom: 10
+    center: [-118.285, 34.021], // [经度, 纬度] - 洛杉矶(USC)
+    zoom: 16
   });
 
-  // 示例：添加一个 marker 点
+
+
+  const buildings = [
+  {
+    name: "Taper Hall of Humanities",
+    coords: [-118.28455854705432, 34.0229929074568],
+    style: "Romanesque Revival",
+    designer: "Marsh, Smith & Powell",
+    info: "The building is named after Mark Taper, a Los Angeles philanthropist and real estate developer."
+  },
+  {
+    name: "Joint Educational Project House",
+    coords: [-118.28938045866856, 34.02302660018619],
+    style: "American Craftsman",
+    designer: "N/A",
+    info: "Originally built as a private residence for former USC President George Finley Bovard and his family."
+  },
+  {
+    name: "Dramatic Arts Building",
+    coords: [-118.2842412141594, 34.02233608354424],
+    style: "Romanesque Revival",
+    designer: "C. Raymond Johnson",
+    info: "In March 2024, USC completed a comprehensive renovation of the historic building."
+  },
+  {
+    name: "University Religious Center",
+    coords: [-118.284854695608668, 34.02334620713794],
+    style: "Mid-Century Modern",
+    designer: "Killingsworth, Brady & Associates",
+    info: "N/A"
+  },
+  {
+    name: "Glorya Kaufman International Dance Center",
+    coords: [-118.28521256508647, 34.02352054024843],
+    style: "Collegiate Gothic",
+    designer: "Pfeiffer Partners Architects",
+    info: "Established in 2012 through a generous gift from philanthropist Glorya Kaufman."
+  },
+  {
+    name: "Booth Hall",
+    coords: [-118.28466658953744, 34.022847004140175],
+    style: "Mid-Century Modern",
+    designer: "N/A",
+    info: "Used for music and theater arts activities. Includes Simon Ramo Recital Hall."
+  },
+  {
+    name: "Albert S. Raubenheimer Music Faculty Building",
+    coords: [-118.28508594179604, 34.02298547893888],
+    style: "Modernism",
+    designer: "William Pereira",
+    info: "Famous April Fools' story—building never actually constructed."
+  },
+  {
+    name: "Virginia Ramo Hall of Music",
+    coords: [-118.28562276456695, 34.022780336387925],
+    style: "Modernism",
+    designer: "N/A",
+    info: "Named after USC alumna Virginia Ramo, wife of aerospace pioneer Simon Ramo."
+  },
+  {
+    name: "The Music Complex",
+    coords: [-118.2859326458588, 34.022855546718693],
+    style: "Mediterranean Revival",
+    designer: "Lever Architects(?)",
+    info: "N/A"
+  },
+  {
+    name: "John Williams Scoring Stage",
+    coords: [-118.285067467695, 34.022852167188276],
+    style: "Mediterranean Revival",
+    designer: "Lever Architects(?)",
+    info: "Renamed in 2011 after composer John Williams."
+  },
+  {
+    name: "Carson Television Center",
+    coords: [-118.28546256334062, 34.023086999494494],
+    style: "Mediterranean Revival",
+    designer: "Lever Architects",
+    info: "Named after Johnny Carson."
+  },
+  {
+    name: "Schoenfeld Symphonic Hall",
+    coords: [-118.28532067925886, 34.02318416704916],
+    style: "Mediterranean Revival",
+    designer: "Lever Architects(?)",
+    info: "N/A"
+  },
+  {
+    name: "Dosan Ahn Chang Ho Family House",
+    coords: [-118.28409551795688, 34.023014036267163],
+    style: "American Foursquare",
+    designer: "N/A",
+    info: "Moved in 2004; now houses USC Institute of Korean Studies."
+  },
+  {
+    name: "Eileen Norris Cinema Theatre",
+    coords: [-118.28514818915468, 34.022260105716851],
+    style: "New Formalism",
+    designer: "A.C. Martin & Associates",
+    info: "Named for Eileen L. Norris, major donor."
+  },
+  {
+    name: "Bing Theatre",
+    coords: [-118.28594454738601, 34.0224714673478],
+    style: "New Formalism",
+    designer: "N/A",
+    info: "Opened in 1976 with 'Sweet Bird of Youth.'"
+  },
+  {
+    name: "Annenberg School for Communication and Journalism",
+    coords: [-118.2863447725134, 34.02206522576349],
+    style: "Late Modernism",
+    designer: "A. Quincy Jones",
+    info: "Recently received $10 million grant for renovation."
+  }
+];
+
+buildings.forEach(b => {
   new mapboxgl.Marker()
-    .setLngLat([-118.2437, 34.0522])
-    .setPopup(new mapboxgl.Popup().setText("Los Angeles")) // 可选：弹出提示
+    .setLngLat(b.coords)
+    .setPopup(new mapboxgl.Popup().setHTML(`
+      <strong>${b.name}</strong><br>
+      <em>Style:</em> ${b.style}<br>
+      <em>Designer:</em> ${b.designer}<br>
+      ${b.info}
+    `))
     .addTo(map);
+});
+
 </script>
 
 </body>
