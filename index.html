@@ -9,6 +9,7 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+
     #controls {
       position: absolute;
       top: 10px;
@@ -16,7 +17,7 @@
       background: white;
       padding: 10px;
       border-radius: 6px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
       z-index: 1;
     }
     button {
@@ -41,17 +42,19 @@
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v12',
     center: [-118.285, 34.021],
-    zoom: 16
+    zoom: 16,
+    pitch: 45,
+    bearing: -20,
+    antialias: true
   });
 
   map.on('load', () => {
-    // 加载 GeoJSON 数据源
     map.addSource('usc-buildings', {
       type: 'geojson',
       data: 'map.geojson'
     });
 
-    // 添加 2D 填充图层
+    // 2D Layer
     map.addLayer({
       id: 'usc-buildings-layer',
       type: 'fill',
@@ -62,30 +65,54 @@
       }
     });
 
-    // 添加 3D 拉伸图层（默认全部高度设为 20）
+    // 3D Walls
     map.addLayer({
-      id: 'usc-buildings-extrusion',
+      id: 'usc-buildings-walls',
       type: 'fill-extrusion',
       source: 'usc-buildings',
       paint: {
-        'fill-extrusion-color': '#888888',
+        'fill-extrusion-color': '#bbbbbb',
         'fill-extrusion-height': [
-          'case',
-          ['has', 'yearBuilt'], 20,
-          0
+          'interpolate',
+          ['linear'],
+          ['get', 'yearBuilt'],
+          1900, 5,
+          2000, 20,
+          2020, 40
         ],
         'fill-extrusion-base': 0,
-        'fill-extrusion-opacity': 0.6
+        'fill-extrusion-opacity': 0.5
       }
     });
 
-    map.setLight({
-      anchor: 'viewport',
-      color: 'white',
-      intensity: 0.6
+    // 3D Roofs
+    map.addLayer({
+      id: 'usc-buildings-roofs',
+      type: 'fill-extrusion',
+      source: 'usc-buildings',
+      paint: {
+        'fill-extrusion-color': '#666666',
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['get', 'yearBuilt'],
+          1900, 5,
+          2000, 20,
+          2020, 40
+        ],
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['get', 'yearBuilt'],
+          1900, 5,
+          2000, 20,
+          2020, 40
+        ],
+        'fill-extrusion-opacity': 1.0
+      }
     });
 
-    // 弹出窗口信息
+    // Popup Info
     map.on('click', 'usc-buildings-layer', (e) => {
       const props = e.features[0].properties;
       new mapboxgl.Popup()
@@ -100,7 +127,7 @@
         .addTo(map);
     });
 
-    // 鼠标样式变手指
+    // Cursor
     map.on('mouseenter', 'usc-buildings-layer', () => {
       map.getCanvas().style.cursor = 'pointer';
     });
@@ -109,22 +136,26 @@
     });
   });
 
-  // 高亮函数：根据时间区间设置 extrusion 高度
-  function highlightDecade(startYear, endYear) {
-    map.setPaintProperty('usc-buildings-extrusion', 'fill-extrusion-height', [
+  // 动态高亮某个年代段建筑
+  function highlightDecade(start, end) {
+    const getHeightExpression = [
       'case',
-      [
-        'all',
-        ['>=', ['get', 'yearBuilt'], startYear],
-        ['<', ['get', 'yearBuilt'], endYear]
+      ['all',
+        ['>=', ['get', 'yearBuilt'], start],
+        ['<', ['get', 'yearBuilt'], end]
       ],
-      40, // 在时间区间内的建筑高度
-      5   // 其他建筑高度
-    ]);
+      50, // 符合的年份 → 更高
+      10  // 不符合的年份 → 较低
+    ];
+
+    map.setPaintProperty('usc-buildings-walls', 'fill-extrusion-height', getHeightExpression);
+    map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-height', getHeightExpression);
+    map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-base', getHeightExpression);
   }
 </script>
 
 </body>
 </html>
+
 
 
