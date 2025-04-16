@@ -42,7 +42,7 @@ const map = new mapboxgl.Map({
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
   zoom: 16,
-  pitch: 0, // 回归俯视角
+  pitch: 0,
   bearing: 0
 });
 
@@ -60,9 +60,7 @@ function buildHeightExpression(start, end) {
 
 function highlightDecade(start, end) {
   const heightExpression = buildHeightExpression(start, end);
-  map.setPaintProperty('usc-buildings-walls', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-height', ['+', heightExpression, 0.1]);
-  map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-base', heightExpression);
+  map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', heightExpression);
 }
 
 map.on('load', () => {
@@ -76,7 +74,7 @@ map.on('load', () => {
   const defaultHeight = buildHeightExpression(1900, 2100);
 
   map.addLayer({
-    id: 'usc-buildings-walls',
+    id: 'usc-buildings-layer',
     type: 'fill-extrusion',
     source: 'usc-buildings',
     paint: {
@@ -87,19 +85,7 @@ map.on('load', () => {
     }
   });
 
-  map.addLayer({
-    id: 'usc-buildings-roofs',
-    type: 'fill-extrusion',
-    source: 'usc-buildings',
-    paint: {
-      'fill-extrusion-color': '#1f5ca8',
-      'fill-extrusion-height': ['+', defaultHeight, 0.1],
-      'fill-extrusion-base': defaultHeight,
-      'fill-extrusion-opacity': 1
-    }
-  });
-
-  map.on('click', 'usc-buildings-roofs', (e) => {
+  map.on('click', 'usc-buildings-layer', (e) => {
     const props = e.features[0].properties;
     new mapboxgl.Popup()
       .setLngLat(e.lngLat)
@@ -113,10 +99,10 @@ map.on('load', () => {
       .addTo(map);
   });
 
-  map.on('mouseenter', 'usc-buildings-roofs', () => {
+  map.on('mouseenter', 'usc-buildings-layer', () => {
     map.getCanvas().style.cursor = 'pointer';
   });
-  map.on('mouseleave', 'usc-buildings-roofs', () => {
+  map.on('mouseleave', 'usc-buildings-layer', () => {
     map.getCanvas().style.cursor = '';
   });
 });
