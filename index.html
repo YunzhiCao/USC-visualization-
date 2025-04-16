@@ -45,22 +45,11 @@ const map = new mapboxgl.Map({
 });
 
 function highlightDecade(start, end) {
-  const buildings = map.getSource('usc-buildings');
-  if (!buildings) return;
-  
-  map.setPaintProperty('usc-walls-layer', 'fill-extrusion-height', [
-    'case',
-    ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]],
-    40,
-    10
-  ]);
+  const wallsHeight = ['case', ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]], 40, 10];
+  const roofsHeight = ['case', ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]], 40.1, 10.1];
 
-  map.setPaintProperty('usc-roofs-layer', 'fill-opacity', 1);
-  map.setPaintProperty('usc-roofs-layer', 'fill-translate', [0, 0]);
-  map.setPaintProperty('usc-roofs-layer', 'fill-translate-anchor', 'viewport');
-  map.setPaintProperty('usc-roofs-layer', 'fill-sort-key', 10);
-  map.setPaintProperty('usc-roofs-layer', 'fill-color', '#3A78C2');
-  map.setPaintProperty('usc-roofs-layer', 'fill-opacity', 1);
+  map.setPaintProperty('usc-walls-layer', 'fill-extrusion-height', wallsHeight);
+  map.setPaintProperty('usc-roofs-layer', 'fill-extrusion-height', roofsHeight);
 }
 
 map.on('load', () => {
@@ -88,11 +77,18 @@ map.on('load', () => {
 
   map.addLayer({
     id: 'usc-roofs-layer',
-    type: 'fill',
+    type: 'fill-extrusion',
     source: 'usc-buildings',
     paint: {
-      'fill-color': '#3A78C2',
-      'fill-opacity': 1
+      'fill-extrusion-color': '#3A78C2',
+      'fill-extrusion-height': [
+        'case',
+        ['all', ['>=', ['get', 'yearBuilt'], 1900], ['<', ['get', 'yearBuilt'], 2100]],
+        40.1,
+        10.1
+      ],
+      'fill-extrusion-base': 0,
+      'fill-extrusion-opacity': 1
     },
     layout: {
       'visibility': 'visible'
@@ -102,3 +98,4 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
