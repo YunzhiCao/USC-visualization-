@@ -9,68 +9,116 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+    button {
+      margin: 4px 0;
+      width: 120px;
+    }
   </style>
 </head>
 <body>
 
 <div id="map"></div>
+<div id="controls">
+  <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
+  <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
+  <button onclick="highlightDecade(1900, 2100)">Reset</button>
+</div>
 
 <script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg'; // ← 可用的 Token
+  mapboxgl.accessToken = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
 
   const map = new mapboxgl.Map({
-    container: 'map', // HTML 容器 ID
-    style: 'mapbox://styles/mapbox/streets-v12', // 样式 URL
-    center: [-118.285, 34.021], // [经度, 纬度] - 洛杉矶(USC)
-    zoom: 16 
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-118.285, 34.021],
+    zoom: 16
   });
 
-// 加载 geojson 图层
-map.on('load', () => {
-  map.addSource('usc-buildings', {
-    type: 'geojson',
-    data: 'map.geojson' // 你刚上传的文件名
+  map.on('load', () => {
+    // 加载 GeoJSON 数据源
+    map.addSource('usc-buildings', {
+      type: 'geojson',
+      data: 'map.geojson'
+    });
+
+    // 添加 2D 填充图层
+    map.addLayer({
+      id: 'usc-buildings-layer',
+      type: 'fill',
+      source: 'usc-buildings',
+      paint: {
+        'fill-color': '#888888',
+        'fill-opacity': 0.5
+      }
+    });
+
+    // 添加 3D 拉伸图层（默认全部高度设为 20）
+    map.addLayer({
+      id: 'usc-buildings-extrusion',
+      type: 'fill-extrusion',
+      source: 'usc-buildings',
+      paint: {
+        'fill-extrusion-color': '#888888',
+        'fill-extrusion-height': [
+          'case',
+          ['has', 'yearBuilt'], 20,
+          0
+        ],
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.6
+      }
+    });
+
+    // 弹出窗口信息
+    map.on('click', 'usc-buildings-layer', (e) => {
+      const props = e.features[0].properties;
+      new mapboxgl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <strong>${props.name}</strong><br>
+          <em>Year Built:</em> ${props.yearBuilt}<br>
+          <em>Style:</em> ${props.style}<br>
+          <em>Designer:</em> ${props.designer}<br>
+          ${props.info || props.description || ''}
+        `)
+        .addTo(map);
+    });
+
+    // 鼠标样式变手指
+    map.on('mouseenter', 'usc-buildings-layer', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'usc-buildings-layer', () => {
+      map.getCanvas().style.cursor = '';
+    });
   });
 
-  map.addLayer({
-    id: 'usc-buildings-layer',
-    type: 'fill',
-    source: 'usc-buildings',
-    paint: {
-      'fill-color': '#888888',
-      'fill-opacity': 0.5
-    }
-  });
-
-  // 可选：鼠标悬停显示信息（来自 properties）
-  map.on('click', 'usc-buildings-layer', (e) => {
-    const props = e.features[0].properties;
-    new mapboxgl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML(`
-        <strong>${props.name}</strong><br>
-        <em>Year Built:</em> ${props.yearBuilt}<br>
-        <em>Style:</em> ${props.style}<br>
-        <em>Designer:</em> ${props.designer}<br>
-        ${props.info || props.description || ''}
-      `)
-      .addTo(map);
-  });
-
-  // 鼠标样式变手指
-  map.on('mouseenter', 'usc-buildings-layer', () => {
-    map.getCanvas().style.cursor = 'pointer';
-  });
-  map.on('mouseleave', 'usc-buildings-layer', () => {
-    map.getCanvas().style.cursor = '';
-  });
-});
-
-
-
-
+  // 高亮函数：根据时间区间设置 extrusion 高度
+  function highlightDecade(startYear, endYear) {
+    map.setPaintProperty('usc-buildings-extrusion', 'fill-extrusion-height', [
+      'case',
+      [
+        'all',
+        ['>=', ['get', 'yearBuilt'], startYear],
+        ['<', ['get', 'yearBuilt'], endYear]
+      ],
+      40, // 在时间区间内的建筑高度
+      5   // 其他建筑高度
+    ]);
+  }
 </script>
 
 </body>
 </html>
+
 
