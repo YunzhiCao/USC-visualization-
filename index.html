@@ -2,13 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Deck.gl + Mapbox | USC Buildings</title>
+  <title>Mapbox Demo</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <script src="https://unpkg.com/deck.gl@8.9.30/dist.min.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
     body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
     #controls {
       position: absolute;
       top: 10px;
@@ -26,6 +26,7 @@
   </style>
 </head>
 <body>
+<div id="map"></div>
 <div id="controls">
   <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
   <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
@@ -33,76 +34,84 @@
 </div>
 
 <script>
-const MAPBOX_TOKEN = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg'; // ⚠️ 请替换为你自己的 Mapbox 公共 token
+  mapboxgl.accessToken = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
 
-const INITIAL_VIEW_STATE = {
-  longitude: -118.285,
-  latitude: 34.021,
-  zoom: 16,
-  pitch: 45,
-  bearing: 0
-};
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-118.285, 34.021],
+    zoom: 16,
+    pitch: 45
+  });
 
-let deckgl;
-let wallLayer, roofLayer;
+  function getHeightExpression(start, end, high, low) {
+    return [
+      'case',
+      ['all',
+        ['>=', ['get', 'yearBuilt'], start],
+        ['<', ['get', 'yearBuilt'], end]
+      ],
+      high,
+      low
+    ];
+  }
 
-function getHeightExpression(start, end) {
-  return feature => {
-    const y = +feature.properties.yearBuilt;
-    return (y >= start && y < end) ? 40 : 10;
-  };
-}
+  function highlightDecade(start, end) {
+    map.setPaintProperty('usc-buildings-wall', 'fill-extrusion-height', getHeightExpression(start, end, 40, 10));
+    map.setPaintProperty('usc-buildings-floor', 'fill-extrusion-height', getHeightExpression(start, end, 40, 10));
+  }
 
-function highlightDecade(start, end) {
-  const getHeight = getHeightExpression(start, end);
+  map.on('load', () => {
+    map.addSource('usc-buildings', {
+      type: 'geojson',
+      data: 'map.geojson'
+    });
 
-  wallLayer = wallLayer.clone({ getElevation: getHeight });
-  roofLayer = roofLayer.clone({ getElevation: getHeight });
-
-  deckgl.setProps({ layers: [wallLayer, roofLayer] });
-}
-
-fetch('map.geojson')
-  .then(res => res.json())
-  .then(data => {
-    const getHeight = getHeightExpression(1900, 2100);
-
-    wallLayer = new deck.PolygonLayer({
-      id: 'building-walls',
-      data: data.features,
-      getPolygon: d => d.geometry.coordinates[0],
-      getElevation: getHeight,
-      getFillColor: [58, 120, 194, 180],
-      extruded: true,
-      wireframe: false,
-      pickable: true,
-      onClick: info => {
-        const props = info.object.properties;
-        alert(`${props.name}\nYear Built: ${props.yearBuilt}\nStyle: ${props.style}\nDesigner: ${props.designer}`);
+    map.addLayer({
+      id: 'usc-buildings-wall',
+      type: 'fill-extrusion',
+      source: 'usc-buildings',
+      paint: {
+        'fill-extrusion-color': '#3a78c2',
+        'fill-extrusion-height': getHeightExpression(1900, 2100, 40, 10),
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.8
       }
     });
 
-    roofLayer = new deck.PolygonLayer({
-      id: 'roof-flat',
-      data: data.features,
-      getPolygon: d => d.geometry.coordinates[0],
-      getElevation: getHeight,
-      getFillColor: [58, 120, 194],
-      extruded: false,
-      pickable: false
+    map.addLayer({
+      id: 'usc-buildings-floor',
+      type: 'fill-extrusion',
+      source: 'usc-buildings',
+      paint: {
+        'fill-extrusion-color': '#3a78c2',
+        'fill-extrusion-height': getHeightExpression(1900, 2100, 40, 10),
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.8
+      }
     });
 
-    deckgl = new deck.DeckGL({
-      mapStyle: `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${MAPBOX_TOKEN}`, // ✅ 修复的 HTTPS 版本
-      initialViewState: INITIAL_VIEW_STATE,
-      controller: true,
-      layers: [wallLayer, roofLayer]
+    map.on('click', 'usc-buildings-wall', (e) => {
+      const props = e.features[0].properties;
+      new mapboxgl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <strong>${props.name}</strong><br>
+          <em>Year Built:</em> ${props.yearBuilt}<br>
+          <em>Style:</em> ${props.style}<br>
+          <em>Designer:</em> ${props.designer}<br>
+          ${props.info || props.description || ''}
+        `)
+        .addTo(map);
     });
-  })
-  .catch(err => {
-    console.error("🚨 Failed to load GeoJSON file:", err);
+
+    map.on('mouseenter', 'usc-buildings-wall', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'usc-buildings-wall', () => {
+      map.getCanvas().style.cursor = '';
+    });
   });
 </script>
 </body>
 </html>
-
