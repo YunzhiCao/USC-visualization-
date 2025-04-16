@@ -5,7 +5,7 @@
   <title>Mapbox + Deck.gl with Extrusion & Roof</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+  <script src="https://unpkg.com/deck.gl@8.9.30/dist.min.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <style>
     body { margin: 0; padding: 0; }
@@ -33,6 +33,7 @@
   <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
   <button onclick="highlightDecade(1900, 2100)">Reset</button>
 </div>
+
 <script>
 const MAPBOX_TOKEN = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
 
@@ -40,11 +41,11 @@ const INITIAL_VIEW_STATE = {
   longitude: -118.285,
   latitude: 34.021,
   zoom: 16,
-  pitch: 45,
+  pitch: 0,
   bearing: 0
 };
 
-let wallLayer, roofLayer;
+let wallLayer, roofLayer, deckgl;
 
 function getHeightExpression(start, end) {
   return feature => {
@@ -54,29 +55,25 @@ function getHeightExpression(start, end) {
 }
 
 function highlightDecade(start, end) {
-  const wallHeight = getHeightExpression(start, end);
-
-  wallLayer.updateProps({
-    getElevation: wallHeight
-  });
-  roofLayer.updateProps({
-    getElevation: wallHeight
-  });
+  const getHeight = getHeightExpression(start, end);
+  wallLayer = wallLayer.clone({ getElevation: getHeight });
+  roofLayer = roofLayer.clone({ getElevation: getHeight });
+  deckgl.setProps({ layers: [wallLayer, roofLayer] });
 }
 
 fetch('map.geojson')
   .then(res => res.json())
   .then(data => {
-    const wallHeight = getHeightExpression(1900, 2100);
+    const features = data.features;
+    const getHeight = getHeightExpression(1900, 2100);
 
     wallLayer = new deck.PolygonLayer({
-      id: 'building-walls',
-      data: data.features,
+      id: 'walls',
+      data: features,
       getPolygon: d => d.geometry.coordinates[0],
-      getElevation: wallHeight,
+      getElevation: getHeight,
       getFillColor: [58, 120, 194, 180],
       extruded: true,
-      wireframe: false,
       pickable: true,
       onClick: info => {
         const props = info.object.properties;
@@ -85,16 +82,16 @@ fetch('map.geojson')
     });
 
     roofLayer = new deck.PolygonLayer({
-      id: 'roof-flat',
-      data: data.features,
+      id: 'roof',
+      data: features,
       getPolygon: d => d.geometry.coordinates[0],
-      getElevation: wallHeight,
+      getElevation: getHeight,
       getFillColor: [58, 120, 194],
       extruded: false,
       pickable: false
     });
 
-    new deck.DeckGL({
+    deckgl = new deck.DeckGL({
       container: 'map',
       map: mapboxgl,
       mapboxAccessToken: MAPBOX_TOKEN,
@@ -107,6 +104,7 @@ fetch('map.geojson')
 </script>
 </body>
 </html>
+
 
 
 
