@@ -61,7 +61,8 @@ function buildHeightExpression(start, end) {
 function highlightDecade(start, end) {
   const heightExpression = buildHeightExpression(start, end);
   map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-height', heightExpression); // Sync roof layer
+  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-height', heightExpression);
+  map.setPaintProperty('usc-ground-layer', 'fill-color', '#3a78c2');
 }
 
 map.on('load', () => {
@@ -73,6 +74,16 @@ map.on('load', () => {
   });
 
   const defaultHeight = buildHeightExpression(1900, 2100);
+
+  map.addLayer({
+    id: 'usc-ground-layer',
+    type: 'fill',
+    source: 'usc-buildings',
+    paint: {
+      'fill-color': '#3a78c2',
+      'fill-opacity': 0.4
+    }
+  });
 
   map.addLayer({
     id: 'usc-buildings-layer',
@@ -122,6 +133,7 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
