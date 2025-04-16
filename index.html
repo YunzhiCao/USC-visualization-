@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Deck.gl + Mapbox | USC Buildings</title>
+  <title>Deck.gl USC Buildings</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script src="https://unpkg.com/deck.gl@8.9.30/dist.min.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     #controls {
@@ -33,8 +33,6 @@
 </div>
 
 <script>
-const MAPBOX_TOKEN = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
-
 const INITIAL_VIEW_STATE = {
   longitude: -118.285,
   latitude: 34.021,
@@ -55,12 +53,25 @@ function getHeightExpression(start, end) {
 
 function highlightDecade(start, end) {
   const getHeight = getHeightExpression(start, end);
-
   wallLayer = wallLayer.clone({ getElevation: getHeight });
   roofLayer = roofLayer.clone({ getElevation: getHeight });
-
-  deckgl.setProps({ layers: [wallLayer, roofLayer] });
+  deckgl.setProps({ layers: [tileLayer, wallLayer, roofLayer] });
 }
+
+const tileLayer = new deck.TileLayer({
+  id: 'base-map',
+  data: 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  minZoom: 0,
+  maxZoom: 19,
+  tileSize: 256,
+  renderSubLayers: props => {
+    return new deck.BitmapLayer(props, {
+      data: null,
+      image: props.data,
+      bounds: props.tile.bbox
+    });
+  }
+});
 
 fetch('map.geojson')
   .then(res => res.json())
@@ -93,11 +104,9 @@ fetch('map.geojson')
     });
 
     deckgl = new deck.DeckGL({
-      mapboxAccessToken: MAPBOX_TOKEN, // ✅ 必须设置且不能缺失
-      mapStyle: 'mapbox://styles/mapbox/streets-v12', // ✅ 选择你喜欢的地图底图
       initialViewState: INITIAL_VIEW_STATE,
       controller: true,
-      layers: [wallLayer, roofLayer] // ✅ 加载图层
+      layers: [tileLayer, wallLayer, roofLayer]
     });
   })
   .catch(err => {
