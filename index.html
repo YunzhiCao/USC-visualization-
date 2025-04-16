@@ -61,14 +61,8 @@ function buildHeightExpression(start, end) {
 function highlightDecade(start, end) {
   const heightExpression = buildHeightExpression(start, end);
   map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-base', heightExpression);
-  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-height', [
-    'case',
-    ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]],
-    80, // 屋顶厚度 = 墙体高度（40）
-    20  // 屋顶厚度 = 墙体高度（10）
-  ]);
-  map.setPaintProperty('usc-ground-layer', 'fill-color', '#3a78c2');
+  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-height', heightExpression);
+  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-base', heightExpression);
 }
 
 map.on('load', () => {
@@ -83,11 +77,13 @@ map.on('load', () => {
 
   map.addLayer({
     id: 'usc-ground-layer',
-    type: 'fill',
+    type: 'fill-extrusion',
     source: 'usc-buildings',
     paint: {
-      'fill-color': '#3a78c2',
-      'fill-opacity': 0.4
+      'fill-extrusion-color': '#3a78c2',
+      'fill-extrusion-height': defaultHeight,
+      'fill-extrusion-base': defaultHeight,
+      'fill-extrusion-opacity': 1
     }
   });
 
@@ -100,23 +96,6 @@ map.on('load', () => {
       'fill-extrusion-height': defaultHeight,
       'fill-extrusion-base': 0,
       'fill-extrusion-opacity': 0.7
-    }
-  });
-
-  map.addLayer({
-    id: 'usc-roof-layer',
-    type: 'fill-extrusion',
-    source: 'usc-buildings',
-    paint: {
-      'fill-extrusion-color': '#3a78c2',
-      'fill-extrusion-height': [
-        'case',
-        ['all', ['>=', ['get', 'yearBuilt'], 1900], ['<', ['get', 'yearBuilt'], 2100]],
-        80,
-        20
-      ],
-      'fill-extrusion-base': defaultHeight,
-      'fill-extrusion-opacity': 1
     }
   });
 
@@ -144,6 +123,7 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
