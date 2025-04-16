@@ -62,7 +62,12 @@ function highlightDecade(start, end) {
   const heightExpression = buildHeightExpression(start, end);
   map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', heightExpression);
   map.setPaintProperty('usc-roof-layer', 'fill-extrusion-base', heightExpression);
-  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-height', ["+", heightExpression, 0]);
+  map.setPaintProperty('usc-roof-layer', 'fill-extrusion-height', [
+    'case',
+    ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]],
+    80, // 屋顶厚度 = 墙体高度（40）
+    20  // 屋顶厚度 = 墙体高度（10）
+  ]);
   map.setPaintProperty('usc-ground-layer', 'fill-color', '#3a78c2');
 }
 
@@ -104,7 +109,12 @@ map.on('load', () => {
     source: 'usc-buildings',
     paint: {
       'fill-extrusion-color': '#3a78c2',
-      'fill-extrusion-height': ["+", defaultHeight, 0],
+      'fill-extrusion-height': [
+        'case',
+        ['all', ['>=', ['get', 'yearBuilt'], 1900], ['<', ['get', 'yearBuilt'], 2100]],
+        80,
+        20
+      ],
       'fill-extrusion-base': defaultHeight,
       'fill-extrusion-opacity': 1
     }
@@ -134,6 +144,7 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
