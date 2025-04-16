@@ -41,7 +41,9 @@ const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
-  zoom: 16
+  zoom: 17,
+  pitch: 0,
+  bearing: 0
 });
 
 function buildHeightExpression(start, end) {
@@ -64,7 +66,7 @@ function highlightDecade(start, end) {
 }
 
 map.on('load', () => {
-  map.setLight({ anchor: 'viewport', intensity: 0.5 });
+  map.setLight({ anchor: 'viewport', intensity: 0.6 });
 
   map.addSource('usc-buildings', {
     type: 'geojson',
@@ -73,6 +75,18 @@ map.on('load', () => {
 
   const defaultHeight = buildHeightExpression(1900, 2100);
 
+  // 添加底部 2D 图层（地面颜色）
+  map.addLayer({
+    id: 'usc-buildings-ground',
+    type: 'fill',
+    source: 'usc-buildings',
+    paint: {
+      'fill-color': '#3a78c2',
+      'fill-opacity': 0.4
+    }
+  });
+
+  // 添加墙体
   map.addLayer({
     id: 'usc-buildings-walls',
     type: 'fill-extrusion',
@@ -85,6 +99,7 @@ map.on('load', () => {
     }
   });
 
+  // 添加屋顶
   map.addLayer({
     id: 'usc-buildings-roofs',
     type: 'fill-extrusion',
@@ -97,6 +112,7 @@ map.on('load', () => {
     }
   });
 
+  // 绑定 popup
   map.on('click', 'usc-buildings-roofs', (e) => {
     const props = e.features[0].properties;
     new mapboxgl.Popup()
@@ -121,6 +137,7 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
 
 </html>
 
