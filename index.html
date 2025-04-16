@@ -58,11 +58,25 @@ function buildHeightExpression(start, end) {
   ];
 }
 
+function buildRoofExpression(start, end) {
+  return [
+    'case',
+    ['all',
+      ['>=', ['get', 'yearBuilt'], start],
+      ['<', ['get', 'yearBuilt'], end]
+    ],
+    40,
+    10
+  ];
+}
+
 function highlightDecade(start, end) {
-  const heightExpression = buildHeightExpression(start, end);
-  map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-base', 0); // Use static base for visibility
+  const wallHeight = buildHeightExpression(start, end);
+  const roofHeight = buildRoofExpression(start, end);
+
+  map.setPaintProperty('usc-buildings-layer', 'fill-extrusion-height', wallHeight);
+  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-height', roofHeight);
+  map.setPaintProperty('usc-ground-layer', 'fill-extrusion-base', roofHeight);
 }
 
 map.on('load', () => {
@@ -73,7 +87,8 @@ map.on('load', () => {
     data: 'map.geojson'
   });
 
-  const defaultHeight = buildHeightExpression(1900, 2100);
+  const defaultWall = buildHeightExpression(1900, 2100);
+  const defaultRoof = buildRoofExpression(1900, 2100);
 
   map.addLayer({
     id: 'usc-ground-layer',
@@ -81,8 +96,8 @@ map.on('load', () => {
     source: 'usc-buildings',
     paint: {
       'fill-extrusion-color': '#3a78c2',
-      'fill-extrusion-height': defaultHeight,
-      'fill-extrusion-base': 0,
+      'fill-extrusion-height': defaultRoof,
+      'fill-extrusion-base': defaultRoof,
       'fill-extrusion-opacity': 1
     }
   });
@@ -93,7 +108,7 @@ map.on('load', () => {
     source: 'usc-buildings',
     paint: {
       'fill-extrusion-color': '#3a78c2',
-      'fill-extrusion-height': defaultHeight,
+      'fill-extrusion-height': defaultWall,
       'fill-extrusion-base': 0,
       'fill-extrusion-opacity': 0.7
     }
@@ -123,6 +138,7 @@ map.on('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
