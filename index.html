@@ -79,6 +79,12 @@
       }
     });
 
+    map.setLight({
+      anchor: 'viewport',
+      color: 'white',
+      intensity: 0.6
+    });
+
     // 弹出窗口信息
     map.on('click', 'usc-buildings-layer', (e) => {
       const props = e.features[0].properties;
