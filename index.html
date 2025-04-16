@@ -33,13 +33,13 @@
 </div>
 
 <script>
-const MAPBOX_TOKEN = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg'; // ⚠️ 请替换为你自己的 Mapbox 公共 token
 
 const INITIAL_VIEW_STATE = {
   longitude: -118.285,
   latitude: 34.021,
   zoom: 16,
-  pitch: 0,
+  pitch: 45,
   bearing: 0
 };
 
@@ -93,8 +93,7 @@ fetch('map.geojson')
     });
 
     deckgl = new deck.DeckGL({
-      mapboxAccessToken: MAPBOX_TOKEN,
-      mapStyle: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=' + MAPBOX_TOKEN,
+      mapStyle: `https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${MAPBOX_TOKEN}`, // ✅ 修复的 HTTPS 版本
       initialViewState: INITIAL_VIEW_STATE,
       controller: true,
       layers: [wallLayer, roofLayer]
@@ -106,3 +105,4 @@ fetch('map.geojson')
 </script>
 </body>
 </html>
+
