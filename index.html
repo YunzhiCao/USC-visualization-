@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mapbox + Deck.gl with Extrusion & Roof</title>
+  <title>Deck.gl + Mapbox | USC Buildings</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <script src="https://unpkg.com/deck.gl@8.9.30/dist.min.js"></script>
@@ -26,7 +26,6 @@
   </style>
 </head>
 <body>
-
 <div id="controls">
   <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
   <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
@@ -44,7 +43,8 @@ const INITIAL_VIEW_STATE = {
   bearing: 0
 };
 
-let wallLayer, roofLayer, deckgl;
+let deckgl;
+let wallLayer, roofLayer;
 
 function getHeightExpression(start, end) {
   return feature => {
@@ -54,26 +54,24 @@ function getHeightExpression(start, end) {
 }
 
 function highlightDecade(start, end) {
-  const wallHeight = getHeightExpression(start, end);
+  const getHeight = getHeightExpression(start, end);
 
-  wallLayer = wallLayer.clone({ getElevation: wallHeight });
-  roofLayer = roofLayer.clone({ getElevation: wallHeight });
+  wallLayer = wallLayer.clone({ getElevation: getHeight });
+  roofLayer = roofLayer.clone({ getElevation: getHeight });
 
-  deckgl.setProps({
-    layers: [wallLayer, roofLayer]
-  });
+  deckgl.setProps({ layers: [wallLayer, roofLayer] });
 }
 
 fetch('map.geojson')
   .then(res => res.json())
   .then(data => {
-    const wallHeight = getHeightExpression(1900, 2100);
+    const getHeight = getHeightExpression(1900, 2100);
 
     wallLayer = new deck.PolygonLayer({
       id: 'building-walls',
       data: data.features,
       getPolygon: d => d.geometry.coordinates[0],
-      getElevation: wallHeight,
+      getElevation: getHeight,
       getFillColor: [58, 120, 194, 180],
       extruded: true,
       wireframe: false,
@@ -88,19 +86,22 @@ fetch('map.geojson')
       id: 'roof-flat',
       data: data.features,
       getPolygon: d => d.geometry.coordinates[0],
-      getElevation: wallHeight,
+      getElevation: getHeight,
       getFillColor: [58, 120, 194],
       extruded: false,
       pickable: false
     });
 
     deckgl = new deck.DeckGL({
-      mapboxAccessToken: MAPBOX_TOKEN,
-      mapStyle: 'mapbox://styles/mapbox/streets-v12',
+      mapboxAccessToken: MAPBOX_TOKEN, // ✅ 必须设置且不能缺失
+      mapStyle: 'mapbox://styles/mapbox/streets-v12', // ✅ 选择你喜欢的地图底图
       initialViewState: INITIAL_VIEW_STATE,
       controller: true,
-      layers: [wallLayer, roofLayer]
+      layers: [wallLayer, roofLayer] // ✅ 加载图层
     });
+  })
+  .catch(err => {
+    console.error("🚨 Failed to load GeoJSON file:", err);
   });
 </script>
 </body>
