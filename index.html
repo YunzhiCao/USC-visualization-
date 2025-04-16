@@ -41,9 +41,7 @@ const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
-  zoom: 16,
-  pitch: 60,
-  bearing: -20
+  zoom: 16
 });
 
 function buildHeightExpression(start, end) {
@@ -122,5 +120,7 @@ map.on('load', () => {
 });
 </script>
 </body>
+</html>
+
 </html>
 
