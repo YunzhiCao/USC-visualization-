@@ -41,8 +41,8 @@ const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
-  zoom: 17,
-  pitch: 0,
+  zoom: 16,
+  pitch: 0, // 回归俯视角
   bearing: 0
 });
 
@@ -61,12 +61,12 @@ function buildHeightExpression(start, end) {
 function highlightDecade(start, end) {
   const heightExpression = buildHeightExpression(start, end);
   map.setPaintProperty('usc-buildings-walls', 'fill-extrusion-height', heightExpression);
-  map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-height', heightExpression);
+  map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-height', ['+', heightExpression, 0.1]);
   map.setPaintProperty('usc-buildings-roofs', 'fill-extrusion-base', heightExpression);
 }
 
 map.on('load', () => {
-  map.setLight({ anchor: 'viewport', intensity: 0.6 });
+  map.setLight({ anchor: 'viewport', intensity: 0.5 });
 
   map.addSource('usc-buildings', {
     type: 'geojson',
@@ -75,18 +75,6 @@ map.on('load', () => {
 
   const defaultHeight = buildHeightExpression(1900, 2100);
 
-  // 添加底部 2D 图层（地面颜色）
-  map.addLayer({
-    id: 'usc-buildings-ground',
-    type: 'fill',
-    source: 'usc-buildings',
-    paint: {
-      'fill-color': '#3a78c2',
-      'fill-opacity': 0.4
-    }
-  });
-
-  // 添加墙体
   map.addLayer({
     id: 'usc-buildings-walls',
     type: 'fill-extrusion',
@@ -99,20 +87,18 @@ map.on('load', () => {
     }
   });
 
-  // 添加屋顶
   map.addLayer({
     id: 'usc-buildings-roofs',
     type: 'fill-extrusion',
     source: 'usc-buildings',
     paint: {
-      'fill-extrusion-color': '#3a78c2',
-      'fill-extrusion-height': defaultHeight,
+      'fill-extrusion-color': '#1f5ca8',
+      'fill-extrusion-height': ['+', defaultHeight, 0.1],
       'fill-extrusion-base': defaultHeight,
-      'fill-extrusion-opacity': 0.95
+      'fill-extrusion-opacity': 1
     }
   });
 
-  // 绑定 popup
   map.on('click', 'usc-buildings-roofs', (e) => {
     const props = e.features[0].properties;
     new mapboxgl.Popup()
@@ -138,6 +124,4 @@ map.on('load', () => {
 </body>
 </html>
 
-
-</html>
 
