@@ -2,10 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mapbox 3D Buildings with Roof Fill</title>
+  <title>Deck.gl + Mapbox | USC Buildings</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/deck.gl@8.9.27/dist.min.js"></script>
+  <script src="https://unpkg.com/@deck.gl/mapbox@8.9.27/dist.min.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
@@ -40,64 +42,50 @@ const map = new mapboxgl.Map({
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
   zoom: 16,
-  pitch: 45,
-  bearing: 0
+  pitch: 60,
+  bearing: -20
 });
+
+const DEFAULT_COLOR = [58, 120, 194];
+const MAX_HEIGHT = 15;
+const MIN_HEIGHT = 6;
+
+let polygonLayer;
+let deckOverlay;
+let _deckData = [];
+
+fetch('map_fixed_polygons.geojson')
+  .then(res => res.json())
+  .then(geojson => {
+    _deckData = geojson.features.map(f => ({
+      ...f.properties,
+      polygon: f.geometry.coordinates,
+      elevation: (f.properties.yearBuilt >= 1970 && f.properties.yearBuilt < 1980) ? MAX_HEIGHT : MIN_HEIGHT
+    }));
+
+    polygonLayer = new deck.PolygonLayer({
+      id: 'usc-buildings-polygon',
+      data: _deckData,
+      extruded: true,
+      wireframe: false,
+      getPolygon: d => d.polygon,
+      getElevation: d => d.elevation,
+      getFillColor: DEFAULT_COLOR,
+      pickable: true
+    });
+
+    deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
+    map.addControl(deckOverlay);
+  });
 
 function highlightDecade(start, end) {
-  const maxHeight = 15;
-  const minHeight = 6;
-  const wallsHeight = ['case', ['all', ['>=', ['get', 'yearBuilt'], start], ['<', ['get', 'yearBuilt'], end]], maxHeight, minHeight];
-
-  map.setPaintProperty('usc-walls-layer', 'fill-extrusion-height', wallsHeight);
+  if (!polygonLayer || !_deckData.length) return;
+  const updated = _deckData.map(d => ({
+    ...d,
+    elevation: (d.yearBuilt >= start && d.yearBuilt < end) ? MAX_HEIGHT : MIN_HEIGHT
+  }));
+  polygonLayer.setProps({ data: updated });
 }
-
-map.on('load', () => {
-  map.addSource('usc-walls', {
-    type: 'geojson',
-    data: 'map.geojson'
-  });
-
-  map.addSource('usc-roofs', {
-    type: 'geojson',
-    data: 'map_roof.geojson'
-  });
-
-  map.addLayer({
-    id: 'usc-walls-layer',
-    type: 'fill-extrusion',
-    source: 'usc-walls',
-    paint: {
-      'fill-extrusion-color': '#3A78C2',
-      'fill-extrusion-height': [
-        'case',
-        ['all', ['>=', ['get', 'yearBuilt'], 1900], ['<', ['get', 'yearBuilt'], 2100]],
-        15,
-        6
-      ],
-      'fill-extrusion-base': 0,
-      'fill-extrusion-opacity': 0.95
-    }
-  });
-
-  map.addLayer({
-    id: 'usc-roofs-fill-layer',
-    type: 'fill',
-    source: 'usc-roofs',
-    paint: {
-      'fill-color': '#3A78C2',
-      'fill-opacity': 1
-    },
-    layout: {
-      'visibility': 'visible'
-    }
-  });
-});
 </script>
 </body>
 </html>
-
-
-
-
-
