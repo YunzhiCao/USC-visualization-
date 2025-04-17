@@ -48,6 +48,7 @@ const map = new mapboxgl.Map({
 
 let currentData = [];
 let deckOverlay;
+let highlightLayer;
 
 fetch('map_fixed_polygons.geojson')
   .then(response => response.json())
@@ -113,26 +114,34 @@ function renderLayers(data) {
     }
   });
 
-  deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
+  highlightLayer = new deck.PolygonLayer({
+    id: 'highlight-outline',
+    data: [], // 初始为空
+    getPolygon: d => d.polygon,
+    getFillColor: [0, 0, 0, 0],
+    getLineColor: [255, 255, 255, 180],
+    getLineWidth: 2,
+    lineWidthUnits: 'pixels',
+    pickable: false
+  });
+
+  deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer, highlightLayer] });
   map.addControl(deckOverlay);
 }
 
 function highlightDecade(start, end) {
-  const updated = currentData.map(d => {
+  const filtered = currentData.filter(d => {
     const year = Number(d.yearBuilt);
-    const isInRange = year >= start && year < end;
-    return {
-      ...d,
-      color: isInRange ? [153, 50, 204, 255] : [58, 120, 194, 30],
-      elevation: 15 // 保持统一高度
-    };
+    return year >= start && year < end;
   });
-  polygonLayer.setProps({ data: updated.slice() });
+
+  highlightLayer.setProps({ data: filtered });
 }
 </script>
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
 
 
