@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Deck.gl + Mapbox | USC Buildings</title>
+  <title>Mapbox 3D Buildings with Deck.gl PolygonLayer</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
@@ -42,50 +42,83 @@ const map = new mapboxgl.Map({
   style: 'mapbox://styles/mapbox/streets-v12',
   center: [-118.285, 34.021],
   zoom: 16,
-  pitch: 60,
-  bearing: -20
+  pitch: 45,
+  bearing: 0
 });
 
-const DEFAULT_COLOR = [58, 120, 194];
-const MAX_HEIGHT = 15;
-const MIN_HEIGHT = 6;
-
-let polygonLayer;
-let deckOverlay;
-let _deckData = [];
+let currentData = [];
 
 fetch('map_fixed_polygons.geojson')
-  .then(res => res.json())
+  .then(response => response.json())
   .then(geojson => {
-    _deckData = geojson.features.map(f => ({
-      ...f.properties,
-      polygon: f.geometry.coordinates,
-      elevation: (f.properties.yearBuilt >= 1970 && f.properties.yearBuilt < 1980) ? MAX_HEIGHT : MIN_HEIGHT
-    }));
-
-    polygonLayer = new deck.PolygonLayer({
-      id: 'usc-buildings-polygon',
-      data: _deckData,
-      extruded: true,
-      wireframe: false,
-      getPolygon: d => d.polygon,
-      getElevation: d => d.elevation,
-      getFillColor: DEFAULT_COLOR,
-      pickable: true
+    currentData = geojson.features.map(f => {
+      const coords = f.geometry.coordinates[0];
+      const props = f.properties;
+      const centroid = coords.reduce((acc, coord) => [acc[0] + coord[0], acc[1] + coord[1]], [0, 0]);
+      centroid[0] /= coords.length;
+      centroid[1] /= coords.length;
+      return {
+        polygon: coords,
+        elevation: props.yearBuilt >= 1970 && props.yearBuilt < 1980 ? 15 : 6,
+        color: [58, 120, 194],
+        name: props.name,
+        yearBuilt: props.yearBuilt,
+        style: props.style,
+        designer: props.designer,
+        info: props.info || props.description || '',
+        centroid: centroid
+      };
     });
 
-    deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
-    map.addControl(deckOverlay);
+    renderLayers(currentData);
   });
 
+let polygonLayer;
+function renderLayers(data) {
+  polygonLayer = new deck.PolygonLayer({
+    id: 'deck-polygons',
+    data,
+    pickable: true,
+    extruded: true,
+    wireframe: false,
+    getPolygon: d => d.polygon,
+    getElevation: d => d.elevation,
+    getFillColor: d => d.color,
+    getLineColor: [80, 80, 80],
+    getLineWidth: 1,
+    onHover: info => {
+      const tooltip = document.getElementById('tooltip');
+      if (info.object) {
+        const d = info.object;
+        tooltip.innerHTML = `
+          <strong>${d.name}</strong><br>
+          <em>Year Built:</em> ${d.yearBuilt}<br>
+          <em>Style:</em> ${d.style}<br>
+          <em>Designer:</em> ${d.designer}<br>
+          ${d.info}
+        `;
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${info.x + 15}px`;
+        tooltip.style.top = `${info.y + 15}px`;
+      } else {
+        tooltip.style.display = 'none';
+      }
+    }
+  });
+
+  const deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
+  map.addControl(deckOverlay);
+}
+
 function highlightDecade(start, end) {
-  if (!polygonLayer || !_deckData.length) return;
-  const updated = _deckData.map(d => ({
+  const updated = currentData.map(d => ({
     ...d,
-    elevation: (d.yearBuilt >= start && d.yearBuilt < end) ? MAX_HEIGHT : MIN_HEIGHT
+    elevation: d.yearBuilt >= start && d.yearBuilt < end ? 15 : 6
   }));
   polygonLayer.setProps({ data: updated });
 }
 </script>
+<div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
