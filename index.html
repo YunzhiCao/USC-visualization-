@@ -109,23 +109,10 @@ function renderLayers(data) {
     }
   });
 
-  const highlightLayer = new deck.PolygonLayer({
-    id: 'highlight-floating',
-    data: [],
-    getPolygon: d => d.polygon,
-    getElevation: d => d.elevation + 0.2,
-    extruded: false,
-    getFillColor: [153, 50, 204, 180],
-    getLineColor: [255, 255, 255, 180],
-    getLineWidth: 1,
-    lineWidthUnits: 'pixels',
-    pickable: false
-  });
-
-  deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer, highlightLayer] });
+  deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
   map.addControl(deckOverlay);
 
-  // 按钮交互逻辑（强制替换浮动图层）
+  // 按钮交互逻辑（每次都使用唯一 ID 替换浮动图层）
   window.highlightDecade = function(start, end) {
     const filtered = currentData.filter(d => {
       const year = Number(d.yearBuilt);
@@ -133,7 +120,7 @@ function renderLayers(data) {
     });
 
     const updatedHighlightLayer = new deck.PolygonLayer({
-      id: 'highlight-floating',
+      id: 'highlight-floating-' + Date.now(),
       data: filtered,
       getPolygon: d => d.polygon,
       getElevation: d => d.elevation + 0.2,
@@ -152,6 +139,7 @@ function renderLayers(data) {
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
 
 
