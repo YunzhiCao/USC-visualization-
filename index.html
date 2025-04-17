@@ -59,10 +59,10 @@ fetch('map_fixed_polygons.geojson')
       centroid[1] /= coords.length;
       return {
         polygon: coords,
-        elevation: props.yearBuilt >= 1970 && props.yearBuilt < 1980 ? 15 : 6,
+        yearBuilt: props.yearBuilt,
+        elevation: 15,
         color: [58, 120, 194],
         name: props.name,
-        yearBuilt: props.yearBuilt,
         style: props.style,
         designer: props.designer,
         info: props.info || props.description || '',
@@ -91,11 +91,13 @@ function renderLayers(data) {
       if (info.object) {
         const d = info.object;
         tooltip.innerHTML = `
-          <strong>${d.name}</strong><br>
-          <em>Year Built:</em> ${d.yearBuilt}<br>
-          <em>Style:</em> ${d.style}<br>
-          <em>Designer:</em> ${d.designer}<br>
-          ${d.info}
+          <div style="max-width: 250px; white-space: normal;">
+            <strong>${d.name}</strong><br>
+            <em>Year Built:</em> ${d.yearBuilt}<br>
+            <em>Style:</em> ${d.style}<br>
+            <em>Designer:</em> ${d.designer}<br>
+            ${d.info}
+          </div>
         `;
         tooltip.style.display = 'block';
         tooltip.style.left = `${info.x + 15}px`;
@@ -111,14 +113,18 @@ function renderLayers(data) {
 }
 
 function highlightDecade(start, end) {
-  const updated = currentData.map(d => ({
-    ...d,
-    elevation: d.yearBuilt >= start && d.yearBuilt < end ? 15 : 6
-  }));
+  const updated = currentData.map(d => {
+    const isInRange = d.yearBuilt >= start && d.yearBuilt < end;
+    return {
+      ...d,
+      color: isInRange ? [153, 50, 204] : [58, 120, 194, 40] // purple vs transparent blue
+    };
+  });
   polygonLayer.setProps({ data: updated });
 }
 </script>
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
