@@ -105,6 +105,9 @@ function renderLayers(data) {
       } else {
         tooltip.style.display = 'none';
       }
+    },
+    updateTriggers: {
+      getFillColor: d => d.color
     }
   });
 
@@ -127,6 +130,7 @@ function highlightDecade(start, end) {
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
 
 
