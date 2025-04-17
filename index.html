@@ -1,3 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mapbox 3D Buildings with Roofs</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100vh; }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+    button {
+      margin: 4px 0;
+      width: 120px;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="controls">
+  <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
+  <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
+  <button onclick="highlightDecade(1900, 2100)">Reset</button>
+</div>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
 
@@ -21,19 +55,16 @@ function highlightDecade(start, end) {
 }
 
 map.on('load', () => {
-  // 加载墙体 source
   map.addSource('usc-walls', {
     type: 'geojson',
     data: 'map.geojson'
   });
 
-  // 加载屋顶 source（你新加的 map_roof.geojson）
   map.addSource('usc-roofs', {
     type: 'geojson',
     data: 'map_roof.geojson'
   });
 
-  // 墙体图层
   map.addLayer({
     id: 'usc-walls-layer',
     type: 'fill-extrusion',
@@ -51,7 +82,6 @@ map.on('load', () => {
     }
   });
 
-  // 屋顶图层（用不同的 source）
   map.addLayer({
     id: 'usc-roofs-layer',
     type: 'fill-extrusion',
@@ -66,10 +96,16 @@ map.on('load', () => {
       ],
       'fill-extrusion-base': 0,
       'fill-extrusion-opacity': 1
+    },
+    layout: {
+      'visibility': 'visible'
     }
   });
 });
 </script>
+</body>
+</html>
+
 
 
 
