@@ -118,6 +118,12 @@ function renderLayers(data) {
   map.addControl(deckOverlay);
 
   window.highlightDecade = function(start, end) {
+    if (start === 1900 && end === 2100) {
+      // Reset button: clear highlight
+      deckOverlay.setProps({ layers: [polygonLayer] });
+      return;
+    }
+
     const filtered = currentData.filter(d => {
       const year = Number(d.yearBuilt);
       return year >= start && year < end;
@@ -129,13 +135,13 @@ function renderLayers(data) {
       getPolygon: d => d.polygon,
       getElevation: d => d.elevation + 3,
       extruded: false,
-      getFillColor: [255, 0, 0, 200],
+      getFillColor: [153, 50, 204, 255],
       getLineColor: [255, 255, 255, 255],
       getLineWidth: 2,
       lineWidthUnits: 'pixels',
       pickable: false,
       parameters: {
-        depthTest: false // 保证不被挡住
+        depthTest: false
       }
     });
 
@@ -146,3 +152,4 @@ function renderLayers(data) {
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
