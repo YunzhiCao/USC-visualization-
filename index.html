@@ -51,11 +51,15 @@
   <label for="styleSelect"><strong>Style:</strong></label>
   <select id="styleSelect" onchange="handleStyleHighlight(this.value)">
     <option value="reset">Reset</option>
-    <option value="Gothic Revival">Gothic Revival</option>
-    <option value="Beaux-Arts">Beaux-Arts</option>
-    <option value="Romanesque">Romanesque</option>
+    <option value="Romanesque Revival">Romanesque Revival</option>
+    <option value="American Craftsman">American Craftsman</option>
+    <option value="Mid-Century Modern">Mid-Century Modern</option>
+    <option value="Collegiate Gothic">Collegiate Gothic</option>
+    <option value="Modernism">Modernism</option>
+    <option value="American Foursquare">American Foursquare</option>
+    <option value="New formalism">New formalism</option>
+    <option value="Late Modernism">Late Modernism</option>
     <option value="Mediterranean Revival">Mediterranean Revival</option>
-    <option value="International">International</option>
   </select>
 </div>
 <script>
@@ -72,7 +76,6 @@ const map = new mapboxgl.Map({
 
 let currentData = [];
 let deckOverlay;
-let outlineLayer;
 
 fetch('map_fixed_polygons.geojson')
   .then(response => response.json())
@@ -209,3 +212,4 @@ function renderLayers(data) {
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
