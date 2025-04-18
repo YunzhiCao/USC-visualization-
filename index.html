@@ -41,9 +41,18 @@
     <option value="top">Top View</option>
     <option value="oblique">Oblique View</option>
   </select>
-  <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
-  <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
-  <button onclick="highlightDecade(1900, 2100)">Reset</button>
+  <label for="highlightSelect"><strong>Highlight by Decade:</strong></label>
+  <select id="highlightSelect" onchange="handleHighlightSelect(this.value)">
+    <option value="reset">Reset</option>
+    <option value="1900-1910">1900–1910</option>
+    <option value="1930-1940">1930–1940</option>
+    <option value="1940-1950">1940–1950</option>
+    <option value="1960-1970">1960–1970</option>
+    <option value="1970-1980">1970–1980</option>
+    <option value="1980-1990">1980–1990</option>
+    <option value="2000-2010">2000–2010</option>
+    <option value="2010-2020">2010–2020</option>
+  </select>
 </div>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoicmljaGllNjE5IiwiYSI6ImNtN3YxY21sbDA2cm0ycnEycXVwa2NmemUifQ.VG0n1YWFUalWfyEvxQv4yg';
@@ -154,6 +163,15 @@ function renderLayers(data) {
     map.flyTo({ pitch: 0, bearing: 0, zoom: 16, duration: 1000 });
   };
 
+  window.handleHighlightSelect = function(value) {
+    if (value === 'reset') {
+      highlightDecade(1900, 2100);
+    } else {
+      const [start, end] = value.split('-').map(Number);
+      highlightDecade(start, end);
+    }
+  };
+
   window.switchView = function(view) {
     if (view === 'top') {
       map.flyTo({ pitch: 0, bearing: 0, zoom: 16, duration: 1000 });
@@ -168,6 +186,7 @@ function renderLayers(data) {
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
 
 
