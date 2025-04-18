@@ -34,7 +34,9 @@
 </head>
 <body>
 <div id="map"></div>
-<div id="controls">
+$1
+  <button onclick="setTopView()">俯视视角</button>
+  <button onclick="setObliqueView()">斜视视角</button>
   <button onclick="highlightDecade(1970, 1980)">1970–1980</button>
   <button onclick="highlightDecade(2000, 2010)">2000–2010</button>
   <button onclick="highlightDecade(1900, 2100)">Reset</button>
@@ -117,39 +119,19 @@ function renderLayers(data) {
   deckOverlay = new deck.MapboxOverlay({ layers: [polygonLayer] });
   map.addControl(deckOverlay);
 
-  window.highlightDecade = function(start, end) {
-    if (start === 1900 && end === 2100) {
-      // Reset button: clear highlight
-      deckOverlay.setProps({ layers: [polygonLayer] });
-      return;
-    }
+  $1
 
-    const filtered = currentData.filter(d => {
-      const year = Number(d.yearBuilt);
-      return year >= start && year < end;
-    });
+  window.setTopView = function() {
+    map.flyTo({ pitch: 0, bearing: 0, zoom: 16, duration: 1000 });
+  };
 
-    const animatedHighlightLayer = new deck.PolygonLayer({
-      id: 'highlight-floating-' + Date.now(),
-      data: filtered,
-      getPolygon: d => d.polygon,
-      getElevation: d => d.elevation + 3,
-      extruded: false,
-      getFillColor: [153, 50, 204, 255],
-      getLineColor: [255, 255, 255, 255],
-      getLineWidth: 2,
-      lineWidthUnits: 'pixels',
-      pickable: false,
-      parameters: {
-        depthTest: false
-      }
-    });
-
-    deckOverlay.setProps({ layers: [polygonLayer, animatedHighlightLayer] });
+  window.setObliqueView = function() {
+    map.flyTo({ pitch: 45, bearing: -30, zoom: 16, duration: 1000 });
   };
 }
 </script>
 <div id="tooltip" style="position: absolute; display: none; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); pointer-events: none; font-size: 12px; z-index: 2;"></div>
 </body>
 </html>
+
 
